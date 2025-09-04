@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     for await (const k of scanIterator('token:')) {
       keys.push(k);
     }
-    const records = await mget(keys);
+    const records = await mget(...keys);
     // initialize tallies
     const maleCounts = {};
     const femaleCounts = {};
