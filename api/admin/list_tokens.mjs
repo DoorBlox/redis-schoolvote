@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     for await (const key of scanIterator('token:')) {
       keys.push(key);
     }
-    const records = await mget(...keys);
+    const records = await mget(keys);
     const items = [];
     records.forEach((rec) => {
       if (!rec) return;
