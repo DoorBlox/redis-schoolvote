@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "buildCommand": "",
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1.mjs" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ]
+}

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SchoolVote Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <div class="max-w-6xl mx-auto p-6 space-y-8">
+      <header class="text-center">
+        <h1 class="text-3xl font-bold">IPSA Presidential Election Admin</h1>
+        <p class="text-sm text-gray-500 mt-1">school vote app made by hisyam - 4ever - @2025</p>
+      </header>
+
+      <!-- Unlock section -->
+      <div id="unlockSection" class="space-y-3">
+        <input id="adminKeyInput" class="w-full max-w-md mx-auto rounded-md border-gray-300 p-2" placeholder="Enter admin key" />
+        <button id="unlockBtn" class="py-2 px-4 rounded-md bg-purple-600 text-white hover:bg-purple-700">Unlock Dashboard</button>
+        <p id="authError" class="text-red-600 text-sm hidden">Invalid admin key or server error.</p>
+        <p id="unlockLoading" class="text-sm text-gray-500 hidden">Unlocking…</p>
+      </div>
+
+      <!-- Dashboard -->
+      <div id="dashboard" class="hidden space-y-8">
+        <!-- Generate tokens and add token form -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">Generate Tokens</h2>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium">Male tokens</label>
+              <input id="genMaleCount" type="number" value="50" min="1" max="1000" class="w-full rounded-md border-gray-300 p-2" />
+              <button data-role="male" class="genBtn mt-2 w-full py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Generate Male</button>
+            </div>
+            <div>
+              <label class="block text-sm font-medium">Female tokens</label>
+              <input id="genFemaleCount" type="number" value="50" min="1" max="1000" class="w-full rounded-md border-gray-300 p-2" />
+              <button data-role="female" class="genBtn mt-2 w-full py-2 rounded-md bg-pink-600 text-white hover:bg-pink-700">Generate Female</button>
+            </div>
+            <div>
+              <label class="block text-sm font-medium">Teacher tokens</label>
+              <input id="genTeacherCount" type="number" value="20" min="1" max="1000" class="w-full rounded-md border-gray-300 p-2" />
+              <button data-role="teacher" class="genBtn mt-2 w-full py-2 rounded-md bg-green-600 text-white hover:bg-green-700">Generate Teacher</button>
+            </div>
+          </div>
+          <p id="genMsg" class="text-sm mt-1 text-gray-600"></p>
+
+          <h3 class="text-lg font-semibold mt-6">Add Token Manually</h3>
+          <div class="grid md:grid-cols-3 gap-4 items-end">
+            <input id="addTokenToken" class="w-full rounded-md border-gray-300 p-2" placeholder="Token (leave blank to auto-generate)" />
+            <input id="addTokenRole" class="w-full rounded-md border-gray-300 p-2" placeholder="Role (e.g., male, female, teacher, custom)" />
+            <button id="addTokenBtn" class="w-full py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700">Add Token</button>
+          </div>
+          <p id="addTokenMsg" class="text-sm mt-1 text-gray-600"></p>
+        </section>
+
+        <!-- Live summary & charts -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">Live Summary</h2>
+          <p id="summaryTotals" class="text-sm text-gray-700"></p>
+          <p id="summaryUnused" class="text-sm text-gray-700"></p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="font-medium mb-1">Male Vote Counts</h3>
+              <canvas id="maleChart" height="200"></canvas>
+            </div>
+            <div>
+              <h3 class="font-medium mb-1">Female Vote Counts</h3>
+              <canvas id="femaleChart" height="200"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Live votes table -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">Live Votes Table</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="border-b text-left">
+                  <th class="py-2 pr-4">Time</th>
+                  <th class="py-2 pr-4">Token</th>
+                  <th class="py-2 pr-4">Role</th>
+                  <th class="py-2 pr-4">Vote</th>
+                </tr>
+              </thead>
+              <tbody id="voteTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Token management table -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">Manage Tokens</h2>
+          <div class="flex items-center gap-3">
+            <select id="filterRole" class="rounded-md border-gray-300 p-2">
+              <option value="">All roles</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="teacher">Teacher</option>
+            </select>
+            <button id="refreshTokensBtn" class="py-2 px-3 rounded-md bg-gray-600 text-white hover:bg-gray-700">Refresh</button>
+            <button id="clearAllBtn" class="ml-auto py-2 px-3 rounded-md bg-red-600 text-white hover:bg-red-700">Delete ALL Tokens</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="border-b text-left">
+                  <th class="py-2 pr-4">Token</th>
+                  <th class="py-2 pr-4">Role</th>
+                  <th class="py-2 pr-4">Used</th>
+                  <th class="py-2 pr-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tokenTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Export data -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">Export Data</h2>
+          <a id="exportCsvLink" class="inline-block py-2 px-4 rounded-md bg-gray-800 text-white hover:bg-gray-900" href="#">Download Votes CSV</a>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      let ADMIN_KEY = '';
+      const api = (path) => `${path}?admin_key=${encodeURIComponent(ADMIN_KEY)}`;
+      const unlockBtn = document.getElementById('unlockBtn');
+      const adminInput = document.getElementById('adminKeyInput');
+      const authError = document.getElementById('authError');
+      const unlockLoading = document.getElementById('unlockLoading');
+      const dashboard = document.getElementById('dashboard');
+
+      unlockBtn.addEventListener('click', async () => {
+        ADMIN_KEY = adminInput.value.trim();
+        if (!ADMIN_KEY) return;
+        authError.classList.add('hidden');
+        unlockLoading.classList.remove('hidden');
+        unlockBtn.disabled = true;
+        try {
+          const res = await fetch(api('/api/admin/summary'));
+          if (res.ok) {
+            document.getElementById('unlockSection').classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            initializeDashboard();
+          } else {
+            authError.classList.remove('hidden');
+          }
+        } catch (err) {
+          authError.classList.remove('hidden');
+        }
+        unlockLoading.classList.add('hidden');
+        unlockBtn.disabled = false;
+      });
+
+      // Generate tokens
+      document.querySelectorAll('.genBtn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const role = btn.dataset.role;
+          let count;
+          if (role === 'male') count = document.getElementById('genMaleCount').value;
+          if (role === 'female') count = document.getElementById('genFemaleCount').value;
+          if (role === 'teacher') count = document.getElementById('genTeacherCount').value;
+          const res = await fetch(api('/api/admin/generate_tokens'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role, count: Number(count) })
+          });
+          const data = await res.json().catch(() => ({}));
+          document.getElementById('genMsg').textContent = res.ok ? `Generated ${count} ${role} tokens.` : data.error || 'Error generating tokens';
+          refreshSummary();
+          refreshTokens();
+        });
+      });
+
+      // Add token manually
+      document.getElementById('addTokenBtn').addEventListener('click', async () => {
+        const token = document.getElementById('addTokenToken').value.trim();
+        const role = document.getElementById('addTokenRole').value.trim().toLowerCase();
+        if (!role) {
+          document.getElementById('addTokenMsg').textContent = 'Role is required';
+          return;
+        }
+        const res = await fetch(api('/api/admin/add_token'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, role })
+        });
+        const data = await res.json().catch(() => ({}));
+        document.getElementById('addTokenMsg').textContent = res.ok ? `Added token ${data.token}` : data.error || 'Error adding token';
+        if (res.ok) {
+          document.getElementById('addTokenToken').value = '';
+          document.getElementById('addTokenRole').value = '';
+        }
+        refreshSummary();
+        refreshTokens();
+      });
+
+      // Export CSV
+      document.getElementById('exportCsvLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = api('/api/admin/export_votes_csv');
+      });
+
+      // Clear all tokens
+      document.getElementById('clearAllBtn').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to delete ALL tokens?')) return;
+        const res = await fetch(api('/api/admin/clear_all'), { method: 'POST' });
+        if (res.ok) {
+          alert('All tokens deleted');
+          refreshSummary();
+          refreshTokens();
+          refreshVotes();
+        } else {
+          alert('Error clearing tokens');
+        }
+      });
+
+      // Refresh tokens table
+      document.getElementById('refreshTokensBtn').addEventListener('click', refreshTokens);
+      document.getElementById('filterRole').addEventListener('change', refreshTokens);
+
+      let maleChart, femaleChart;
+
+      function initializeDashboard() {
+        const ctxMale = document.getElementById('maleChart').getContext('2d');
+        const ctxFemale = document.getElementById('femaleChart').getContext('2d');
+        maleChart = new Chart(ctxMale, {
+          type: 'bar',
+          data: { labels: [], datasets: [{ label: 'Votes', data: [] }] },
+          options: { responsive: true, animation: false }
+        });
+        femaleChart = new Chart(ctxFemale, {
+          type: 'bar',
+          data: { labels: [], datasets: [{ label: 'Votes', data: [] }] },
+          options: { responsive: true, animation: false }
+        });
+        // initial load
+        refreshSummary();
+        refreshVotes();
+        refreshTokens();
+        // Polling
+        setInterval(refreshSummary, 5000);
+        setInterval(refreshVotes, 5000);
+        setInterval(refreshTokens, 7000);
+      }
+
+      async function refreshSummary() {
+        try {
+          const res = await fetch(api('/api/admin/summary'));
+          if (!res.ok) return;
+          const { candidates, tally, remaining } = await res.json();
+          // update charts
+          maleChart.data.labels = candidates.male;
+          maleChart.data.datasets[0].data = candidates.male.map((c) => tally.male[c] || 0);
+          maleChart.update();
+          femaleChart.data.labels = candidates.female;
+          femaleChart.data.datasets[0].data = candidates.female.map((c) => tally.female[c] || 0);
+          femaleChart.update();
+          // update summary text
+          const t = tally.totals;
+          document.getElementById('summaryTotals').textContent = `Used tokens — male: ${t.male_used} • female: ${t.female_used} • teachers: ${t.teacher_used} • total: ${t.all_used}`;
+          document.getElementById('summaryUnused').textContent = `Unused tokens — male: ${remaining.male} • female: ${remaining.female} • teachers: ${remaining.teacher} • total: ${remaining.all}`;
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function refreshVotes() {
+        try {
+          const res = await fetch(api('/api/admin/votes_list'));
+          if (!res.ok) return;
+          const { items } = await res.json();
+          const tbody = document.getElementById('voteTable');
+          tbody.innerHTML = '';
+          items.forEach((row) => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b';
+            tr.innerHTML = `<td class="py-1 pr-4 whitespace-nowrap">${escapeHtml(row.used_at)}</td><td class="py-1 pr-4 font-mono">${escapeHtml(row.token)}</td><td class="py-1 pr-4">${escapeHtml(row.role)}</td><td class="py-1 pr-4">${escapeHtml(row.vote)}</td>`;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function refreshTokens() {
+        try {
+          const role = document.getElementById('filterRole').value;
+          const res = await fetch(api('/api/admin/list_tokens' + (role ? `&role=${encodeURIComponent(role)}` : '')));
+          if (!res.ok) return;
+          const { items } = await res.json();
+          const tbody = document.getElementById('tokenTable');
+          tbody.innerHTML = '';
+          items.forEach((it) => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b';
+            tr.innerHTML = `<td class="py-1 pr-4 font-mono">${escapeHtml(it.token)}</td><td class="py-1 pr-4">${escapeHtml(it.role)}</td><td class="py-1 pr-4">${it.used ? 'yes' : 'no'}</td><td class="py-1 pr-4"><button data-token="${it.token}" class="delBtn py-1 px-2 rounded-md bg-red-600 text-white hover:bg-red-700">Delete</button></td>`;
+            tbody.appendChild(tr);
+          });
+          document.querySelectorAll('.delBtn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const token = btn.dataset.token;
+              if (!confirm('Delete token ' + token + '?')) return;
+              const resDel = await fetch(api('/api/admin/delete_token'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+              });
+              if (resDel.ok) {
+                refreshTokens();
+                refreshSummary();
+                refreshVotes();
+              } else {
+                alert('Error deleting token');
+              }
+            });
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, (c) => {
+          return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[c];
+        });
+      }
+    </script>
+  </body>
+</html>
