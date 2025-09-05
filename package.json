@@ -1,17 +1,13 @@
 {
   "name": "schoolvote",
-  "version": "1.0.0",
-  "description": "Simple voting application for IPSA Presidential Election using Vercel serverless functions and Redis.",
-  "main": "index.js",
+  "private": true,
   "type": "module",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "engines": {
-    "node": "22.x"
-  },
+  "engines": { "node": "22.x" },
   "dependencies": {
-    "nanoid": "^4.0.2",
-    "redis": "^4.7.1"
+    "redis": "^4.7.1",
+    "nanoid": "^4.0.2"
+  },
+  "scripts": {
+    "dev": "vercel dev"
   }
 }
